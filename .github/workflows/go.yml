@@ -1,78 +1,14 @@
-## This workflow will build a golang project
-## For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
-#
-#name: Go
-#
-#on:
-#  push:
-#    branches: [ "main", "develop" ]
-#  pull_request:
-#    branches: [ "main", "develop" ]
-#  workflow_dispatch:
-#    inputs:
-#      username:
-#        description: "db username"
-#        required: true
-#        default: "admin"
-#        type: "string"
-#      password:
-#        description: "db password"
-#        required: true
-#        default: "123456"
-#        type: "string"
-#      database:
-#        description: "db name"
-#        required: true
-#        default: "test_db"
-#        type: "string"
-#
-#jobs:
-#  build-1-17:
-##    env:
-##      USERNAME: ${{ inputs.username }}
-##      PASSWORD: ${{ inputs.password }}
-##      DATABASE: ${{ inputs.database }}
-#    runs-on: ubuntu-latest
-##    services:
-##      mysql:
-##        image: mysql:5.7
-##        env:
-##          MYSQL_DATABASE: ${{ inputs.database }}
-##          MYSQL_USER: ${{ inputs.username }}
-##          MYSQL_PASSWORD: ${{ inputs.password }}
-##          MYSQL_ROOT_PASSWORD: ${{ inputs.password }}
-##        ports:
-##          - 3306
-##        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=5
-#    steps:
-#    - run: |
-#        echo "Log level: ${{ github.event.inputs.username }}"
-#        echo "Tags: ${{ inputs.password }}"
-#    - uses: actions/checkout@v3
-#    - name: Set up Go
-#      uses: actions/setup-go@v3
-#      with:
-#        go-version: 1.17
-#
-#    - name: Test
-#      run: go test -v ./...
+# This workflow will build a golang project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
 
-name: 00 - Workflow Dispatch
+name: Go
 
 on:
   push:
     branches: [ "main", "develop" ]
   pull_request:
     branches: [ "main", "develop" ]
-  workflow_dispatch:
-    inputs:
-      input:
-        description: "Test"
-        required: false
-        default: "World"
 
 jobs:
-  job1:
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo Hello ${{ inputs.input }}
+  test:
+    uses: ./.github/workflows/test.yml
