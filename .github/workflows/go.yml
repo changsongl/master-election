@@ -26,9 +26,9 @@ on:
 jobs:
   build-1-17:
     env:
-      USERNAME: ${{ github.event.inputs.username }}
-      PASSWORD: ${{ github.event.inputs.password }}
-      DATABASE: ${{ github.event.inputs.database }}
+      USERNAME: ${{ inputs.username }}
+      PASSWORD: ${{ inputs.password }}
+      DATABASE: ${{ inputs.database }}
     runs-on: ubuntu-latest
 #    services:
 #      mysql:
@@ -42,6 +42,9 @@ jobs:
 #          - 3306
 #        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=5
     steps:
+    - run: |
+        echo "Log level: ${{ inputs.username }}"
+        echo "Tags: ${{ inputs.password }}"
     - uses: actions/checkout@v3
     - name: Set up Go
       uses: actions/setup-go@v3
