@@ -8,21 +8,20 @@ on:
     branches: [ "main", "develop" ]
   pull_request:
     branches: [ "main", "develop" ]
-
-workflow_dispatch:
-  inputs:
-    username:
-      description: "db username"
-      default: "admin"
-      type: "string"
-    password:
-      description: "db password"
-      default: "123456"
-      type: "string"
-    database:
-      description: "db name"
-      default: "test_db"
-      type: "string"
+  workflow_dispatch:
+    inputs:
+      username:
+        description: "db username"
+        default: "admin"
+        type: "string"
+      password:
+        description: "db password"
+        default: "123456"
+        type: "string"
+      database:
+        description: "db name"
+        default: "test_db"
+        type: "string"
 
 jobs:
   build-1-17:
