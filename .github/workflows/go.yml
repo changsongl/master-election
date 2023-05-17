@@ -11,24 +11,23 @@ on:
 
 jobs:
   build-1-17:
-    on:
-      workflow_dispatch:
-        inputs:
-          username:
-            description: "db username"
-            required: true
-            default: "admin"
-            type: "string"
-          password:
-            description: "db password"
-            required: true
-            default: "123456"
-            type: "string"
-          database:
-            description: "db name"
-            required: true
-            default: "test_db"
-            type: "string"
+    workflow_dispatch:
+      inputs:
+        username:
+          description: "db username"
+          required: true
+          default: "admin"
+          type: "string"
+        password:
+          description: "db password"
+          required: true
+          default: "123456"
+          type: "string"
+        database:
+          description: "db name"
+          required: true
+          default: "test_db"
+          type: "string"
     env:
       USERNAME: ${{ inputs.username }}
       PASSWORD: ${{ inputs.password }}
