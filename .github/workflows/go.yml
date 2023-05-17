@@ -75,4 +75,4 @@ jobs:
   job1:
     runs-on: ubuntu-latest
     steps:
-      - run: echo Hello ${{ github.event.inputs.input }}
+      - run: echo Hello ${{ inputs.input }}
