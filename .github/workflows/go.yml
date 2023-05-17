@@ -9,13 +9,42 @@ on:
   pull_request:
     branches: [ "main", "develop" ]
 
+workflow_dispatch:
+  inputs:
+    username:
+      description: "db username"
+      default: "admin"
+      type: "string"
+    password:
+      description: "db password"
+      default: "123456"
+      type: "string"
+    database:
+      description: "db name"
+      default: "test_db"
+      type: "string"
+
 jobs:
 
   build-1-17:
     runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_DATABASE: ${{ inputs.database }}
+          MYSQL_USER: ${{ inputs.username }}
+          MYSQL_PASSWORD: ${{ inputs.password }}
+          MYSQL_ROOT_PASSWORD: ${{ inputs.password }}
+        ports:
+          - 3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=5
+    environment:
+      username: ${{ inputs.username }}
+      password: ${{ inputs.password }}
+      database: ${{ inputs.database }}
     steps:
     - uses: actions/checkout@v3
-
     - name: Set up Go
       uses: actions/setup-go@v3
       with:
@@ -23,29 +52,3 @@ jobs:
 
     - name: Test
       run: go test -v ./...
-
-  build-1-18:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Set up Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: 1.18
-
-      - name: Test
-        run: go test -v ./...
-
-  build-1-19:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Set up Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: 1.19
-
-      - name: Test
-        run: go test -v ./...
