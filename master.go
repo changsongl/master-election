@@ -50,7 +50,7 @@ type master struct {
 
 func (m *master) Start() error {
 	if !m.isStarted.SetWithCond(false, true) {
-		m.logger.Error("master.Start m.isStarted.SetWithCond: %s", ErrMasterIsStarted)
+		m.logger.Errorf("master.Start m.isStarted.SetWithCond: %s", ErrMasterIsStarted)
 		return ErrMasterIsStarted
 	}
 
@@ -60,30 +60,30 @@ func (m *master) Start() error {
 		if !m.isMaster.Value() {
 			hasMaster, err := m.hasCurrentMaster()
 			if err != nil {
-				m.logger.Error("master.Start m.hasCurrentMaster: %s", err)
+				m.logger.Errorf("master.Start m.hasCurrentMaster: %s", err)
 				return
 			}
 
 			if hasMaster {
-				m.logger.Debug("master.Start m.hasCurrentMaster: true")
+				m.logger.Debugf("master.Start m.hasCurrentMaster: true")
 				return
 			}
 
 			success, err := m.becomeMaster()
 			if err != nil {
-				m.logger.Error("master.Start m.becomeMaster: %s", err)
+				m.logger.Errorf("master.Start m.becomeMaster: %s", err)
 				return
 			}
 
 			if success {
-				m.logger.Info("master.Start m.becomeMaster: success")
+				m.logger.Infof("master.Start m.becomeMaster: success")
 
 				m.isMaster.SetTrue()
 				m.masterInfo.SetStartAt(m.masterInfo.CurrentHeartbeatTime)
 				m.nextEpoch()
 				m.runMasterStartHook()
 			} else {
-				m.logger.Debug("master.Start m.becomeMaster: failed")
+				m.logger.Debugf("master.Start m.becomeMaster: failed")
 			}
 
 			return
@@ -91,7 +91,7 @@ func (m *master) Start() error {
 
 		err := m.lock.WriteHeartbeat(m.masterInfo)
 		if err != nil {
-			m.logger.Error("master.Start m.lock.WriteHeartbeat: %s", err)
+			m.logger.Errorf("master.Start m.lock.WriteHeartbeat: %s", err)
 
 			m.cleanMasterState()
 
@@ -100,7 +100,7 @@ func (m *master) Start() error {
 
 		m.masterInfo.SetLastHeartBeat(m.masterInfo.CurrentHeartbeatTime)
 
-		m.logger.Debug("master.Start m.lock.WriteHeartbeat: %v", m.masterInfo.LastHeartbeat)
+		m.logger.Debugf("master.Start m.lock.WriteHeartbeat: %v", m.masterInfo.LastHeartbeat)
 	})
 	return nil
 }
@@ -108,7 +108,7 @@ func (m *master) Start() error {
 func (m *master) hasCurrentMaster() (bool, error) {
 	curMaster, err := m.lock.CurrentMaster()
 	if err != nil {
-		m.logger.Error("master.hasCurrentMaster m.lock.CurrentMaster: %s", err)
+		m.logger.Errorf("master.hasCurrentMaster m.lock.CurrentMaster: %s", err)
 		return false, err
 	}
 
@@ -122,7 +122,7 @@ func (m *master) hasCurrentMaster() (bool, error) {
 func (m *master) becomeMaster() (bool, error) {
 	success, err := m.lock.Lock(m.masterInfo)
 	if err != nil {
-		m.logger.Error("master.becomeMaster m.masterInfo.SetCurrentHeartbeatTime: %s", err)
+		m.logger.Errorf("master.becomeMaster m.masterInfo.SetCurrentHeartbeatTime: %s", err)
 
 		return false, err
 	}
@@ -138,24 +138,24 @@ func (m *master) cleanMasterState() {
 }
 
 func (m *master) Stop() error {
-	m.logger.Info("master.Stop start")
+	m.logger.Infof("master.Stop start")
 
 	if !m.isStarted.SetWithCond(true, false) {
-		m.logger.Error("master.Stop m.isStarted.SetWithCond: %s", ErrMasterHasNotStarted)
+		m.logger.Errorf("master.Stop m.isStarted.SetWithCond: %s", ErrMasterHasNotStarted)
 		return ErrMasterHasNotStarted
 	}
 
-	m.logger.Debug("master.Stop m.ticker.Stop: before call")
+	m.logger.Debugf("master.Stop m.ticker.Stop: before call")
 	m.ticker.Stop()
-	m.logger.Debug("master.Stop m.ticker.Stop: after call")
+	m.logger.Debugf("master.Stop m.ticker.Stop: after call")
 
 	success, err := m.lock.UnLock(m.masterInfo)
 	if err != nil {
-		m.logger.Error("master.Stop m.lock.UnLock: %s", err)
+		m.logger.Errorf("master.Stop m.lock.UnLock: %s", err)
 		return err
 	}
 
-	m.logger.Info("master.Stop end: is_master: %t", success)
+	m.logger.Infof("master.Stop end: is_master: %t", success)
 
 	return nil
 }
@@ -179,6 +179,9 @@ func New(l lock.MasterLock) (Master, error) {
 	uuidStr := id.String()
 	ip := net.GetLocalIP()
 
+	logger := log.New(c.DefaultLoggerLogLevel, c.Logger)
+	l.SetLogger(logger)
+
 	return &master{
 		uuid:       uuidStr,
 		version:    c.Version,
@@ -196,7 +199,7 @@ func New(l lock.MasterLock) (Master, error) {
 
 		lock: l,
 
-		logger: log.New(c.DefaultLoggerLogLevel, c.Logger),
+		logger: logger,
 
 		epoch: 0,
 	}, nil

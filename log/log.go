@@ -1,28 +1,22 @@
 package log
 
 import (
-	"fmt"
-	"time"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 type Logger interface {
-	Debug(msg string, vars ...interface{})
-	Info(msg string, vars ...interface{})
-	Error(msg string, vars ...interface{})
+	Debugf(msg string, vars ...interface{})
+	Infof(msg string, vars ...interface{})
+	Errorf(msg string, vars ...interface{})
 }
 
-type Level int
+type Level zapcore.Level
 
 const (
-	LevelDebug Level = iota
-	LevelInfo
-	LevelError
-)
-
-const (
-	levelDebugMsg = "Debug"
-	levelInfoMsg  = "Info"
-	levelErrorMsg = "Error"
+	LevelDebug Level = Level(zapcore.DebugLevel)
+	LevelInfo  Level = Level(zapcore.InfoLevel)
+	LevelError Level = Level(zapcore.ErrorLevel)
 )
 
 type logger struct {
@@ -30,39 +24,31 @@ type logger struct {
 	logger Logger
 }
 
-func (l *logger) Debug(msg string, vars ...interface{}) {
-	if l.logger != nil {
-		l.logger.Debug(msg, vars...)
-	} else if l.isOk(LevelDebug) {
-		l.println(levelDebugMsg, msg, vars...)
-	}
+func (l *logger) Debugf(format string, vars ...interface{}) {
+	l.logger.Debugf(format, vars...)
 }
 
-func (l *logger) Info(msg string, vars ...interface{}) {
-	if l.logger != nil {
-		l.logger.Info(msg, vars...)
-	} else if l.isOk(LevelInfo) {
-		l.println(levelInfoMsg, msg, vars...)
-	}
+func (l *logger) Infof(format string, vars ...interface{}) {
+	l.logger.Infof(format, vars...)
 }
 
-func (l *logger) Error(msg string, vars ...interface{}) {
-	if l.logger != nil {
-		l.logger.Error(msg, vars...)
-	} else if l.isOk(LevelError) {
-		l.println(levelErrorMsg, msg, vars...)
-	}
-}
-
-func (l *logger) println(level, msg string, vars ...interface{}) {
-	msg = fmt.Sprintf("[%s][%s] %s\n", level, time.Now().String(), msg)
-	fmt.Printf(msg, vars...)
-}
-
-func (l *logger) isOk(level Level) bool {
-	return l.level <= level
+func (l *logger) Errorf(format string, vars ...interface{}) {
+	l.logger.Errorf(format, vars...)
 }
 
 func New(level Level, l Logger) Logger {
-	return &logger{level: level, logger: l}
+	if l == nil {
+		conf := zap.NewProductionConfig()
+		conf.Encoding = "console"
+		conf.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+
+		zapLevel := zap.NewAtomicLevel()
+		zapLevel.SetLevel(zapcore.Level(level))
+		conf.Level = zapLevel
+
+		lg, _ := conf.Build(zap.AddCallerSkip(1))
+		l = lg.Sugar()
+	}
+
+	return &logger{logger: l}
 }

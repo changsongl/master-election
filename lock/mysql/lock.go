@@ -24,7 +24,7 @@ type Config struct {
 	MaxRetries         int
 	MaxOpenConnections int
 
-	Logger log.Logger
+	logger log.Logger
 }
 
 type MasterLock struct {
@@ -35,27 +35,34 @@ type MasterLock struct {
 	db *gorm.DB
 }
 
-func NewMasterLock(c *Config) *MasterLock {
-	l := &MasterLock{c: c}
+func NewMasterLock(c *Config) lock.MasterLock {
+	l := &MasterLock{
+		c: c,
+	}
+	
 	return l
 }
 
-func (m MasterLock) Lock(info *lock.Info) (isSuccess bool, err error) {
+func (m *MasterLock) Lock(info *lock.Info) (isSuccess bool, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (m MasterLock) UnLock(info *lock.Info) (isSuccess bool, err error) {
+func (m *MasterLock) UnLock(info *lock.Info) (isSuccess bool, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (m MasterLock) WriteHeartbeat(info *lock.Info) error {
+func (m *MasterLock) WriteHeartbeat(info *lock.Info) error {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (m MasterLock) CurrentMaster() (*lock.Info, error) {
+func (m *MasterLock) CurrentMaster() (*lock.Info, error) {
 	//TODO implement me
 	panic("implement me")
+}
+
+func (m *MasterLock) SetLogger(l log.Logger) {
+	m.logger = l
 }
