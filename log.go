@@ -31,37 +31,25 @@ type logger struct {
 }
 
 func (l *logger) Debug(msg string, vars ...interface{}) {
-	if !l.isOk(LogLevelDebug) {
-		return
-	}
-
 	if l.logger != nil {
 		l.logger.Debug(msg, vars...)
-	} else {
+	} else if l.isOk(LogLevelDebug) {
 		l.println(levelDebugMsg, msg, vars...)
 	}
 }
 
 func (l *logger) Info(msg string, vars ...interface{}) {
-	if !l.isOk(LogLevelInfo) {
-		return
-	}
-
 	if l.logger != nil {
 		l.logger.Info(msg, vars...)
-	} else {
+	} else if l.isOk(LogLevelInfo) {
 		l.println(levelInfoMsg, msg, vars...)
 	}
 }
 
 func (l *logger) Error(msg string, vars ...interface{}) {
-	if !l.isOk(LogLevelError) {
-		return
-	}
-
 	if l.logger != nil {
 		l.logger.Error(msg, vars...)
-	} else {
+	} else if l.isOk(LogLevelError) {
 		l.println(levelErrorMsg, msg, vars...)
 	}
 }

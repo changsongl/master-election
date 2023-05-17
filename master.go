@@ -40,7 +40,7 @@ type master struct {
 	heartbeatMultiplier int
 	ticker              ticker.Ticker
 
-	logger *logger
+	logger Logger
 
 	epoch uint64
 
@@ -194,6 +194,8 @@ func New(l lock.MasterLock) (Master, error) {
 		ticker:              ticker.New(c.Heartbeat),
 
 		lock: l,
+		
+		logger: newLogger(c.DefaultLoggerLogLevel, c.Logger),
 
 		epoch: 0,
 	}, nil

@@ -18,14 +18,16 @@ type config struct {
 	MasterStartHook func(epoch uint64)
 	MasterEndHook   func(epoch uint64)
 
-	Logger Logger
+	DefaultLoggerLogLevel LogLevel
+	Logger                Logger
 }
 
 func newDefaultConfig() *config {
 	return &config{
-		Heartbeat:           defaultHeartBeat,
-		Version:             defaultVersion,
-		HeartbeatMultiplier: defaultHeartBeatMultiplier,
+		Heartbeat:             defaultHeartBeat,
+		Version:               defaultVersion,
+		HeartbeatMultiplier:   defaultHeartBeatMultiplier,
+		DefaultLoggerLogLevel: LogLevelInfo,
 	}
 }
 
@@ -72,5 +74,11 @@ func OptionMasterEndHook(f func(epoch uint64)) Option {
 func OptionLogger(l Logger) Option {
 	return optFunc(func(c *config) {
 		c.Logger = l
+	})
+}
+
+func OptionDefaultLoggerLogLevel(l LogLevel) Option {
+	return optFunc(func(c *config) {
+		c.DefaultLoggerLogLevel = l
 	})
 }
