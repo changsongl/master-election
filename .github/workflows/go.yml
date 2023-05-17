@@ -26,10 +26,10 @@ workflow_dispatch:
 
 jobs:
   build-1-17:
-    environment:
-      username: ${{ inputs.username }}
-      password: ${{ inputs.password }}
-      database: ${{ inputs.database }}
+    env:
+      USERNAME: ${{ inputs.username }}
+      PASSWORD: ${{ inputs.password }}
+      DATABASE: ${{ inputs.database }}
     runs-on: ubuntu-latest
     services:
       mysql:

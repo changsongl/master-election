@@ -11,5 +11,5 @@ func TestLogger(t *testing.T) {
 	l.Infof("this a info msg")
 	l.Errorf("this a error msg")
 
-	l.Infof(os.Getenv("username"))
+	l.Infof(os.Getenv("USERNAME"))
 }
