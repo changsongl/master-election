@@ -39,7 +39,7 @@ func NewMasterLock(c *Config) lock.MasterLock {
 	l := &MasterLock{
 		c: c,
 	}
-	
+
 	return l
 }
 
