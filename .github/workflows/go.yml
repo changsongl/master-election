@@ -5,13 +5,13 @@ name: Go
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "develop" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "develop" ]
 
 jobs:
 
-  build:
+  build-1.17:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -19,10 +19,33 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v3
       with:
-        go-version: 1.19
-
-    - name: Build
-      run: go build -v ./...
+        go-version: 1.17
 
     - name: Test
       run: go test -v ./...
+
+  build-1.18:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
+
+      - name: Test
+        run: go test -v ./...
+
+  build-1.19:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
+
+      - name: Test
+        run: go test -v ./...
