@@ -26,9 +26,9 @@ on:
 jobs:
   build-1-17:
     env:
-      USERNAME: ${{ inputs.username }}
-      PASSWORD: ${{ inputs.password }}
-      DATABASE: ${{ inputs.database }}
+      USERNAME: ${{ github.event.inputs.username }}
+      PASSWORD: ${{ github.event.inputs.password }}
+      DATABASE: ${{ github.event.inputs.database }}
     runs-on: ubuntu-latest
 #    services:
 #      mysql:
