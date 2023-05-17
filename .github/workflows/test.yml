@@ -18,26 +18,23 @@ on:
 
 jobs:
   build-1-17:
-    #    env:
-    #      USERNAME: ${{ inputs.username }}
-    #      PASSWORD: ${{ inputs.password }}
-    #      DATABASE: ${{ inputs.database }}
+    env:
+      USERNAME: ${{ inputs.username }}
+      PASSWORD: ${{ inputs.password }}
+      DATABASE: ${{ inputs.database }}
     runs-on: ubuntu-latest
-    #    services:
-    #      mysql:
-    #        image: mysql:5.7
-    #        env:
-    #          MYSQL_DATABASE: ${{ inputs.database }}
-    #          MYSQL_USER: ${{ inputs.username }}
-    #          MYSQL_PASSWORD: ${{ inputs.password }}
-    #          MYSQL_ROOT_PASSWORD: ${{ inputs.password }}
-    #        ports:
-    #          - 3306
-    #        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=5
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_DATABASE: ${{ inputs.database }}
+          MYSQL_USER: ${{ inputs.username }}
+          MYSQL_PASSWORD: ${{ inputs.password }}
+          MYSQL_ROOT_PASSWORD: ${{ inputs.password }}
+        ports:
+          - 3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=5
     steps:
-      - run: |
-          echo "Log level: ${{ inputs.username }}"
-          echo "Tags: ${{ inputs.password }}"
       - uses: actions/checkout@v3
       - name: Set up Go
         uses: actions/setup-go@v3
