@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/changsongl/master-election/lock"
+	"github.com/changsongl/master-election/log"
 	"github.com/changsongl/master-election/net"
 	"github.com/changsongl/master-election/safe"
 	"github.com/changsongl/master-election/ticker"
@@ -40,7 +41,7 @@ type master struct {
 	heartbeatMultiplier int
 	ticker              ticker.Ticker
 
-	logger Logger
+	logger log.Logger
 
 	epoch uint64
 
@@ -194,8 +195,8 @@ func New(l lock.MasterLock) (Master, error) {
 		ticker:              ticker.New(c.Heartbeat),
 
 		lock: l,
-		
-		logger: newLogger(c.DefaultLoggerLogLevel, c.Logger),
+
+		logger: log.New(c.DefaultLoggerLogLevel, c.Logger),
 
 		epoch: 0,
 	}, nil

@@ -1,4 +1,4 @@
-package master
+package log
 
 import (
 	"fmt"
@@ -11,12 +11,12 @@ type Logger interface {
 	Error(msg string, vars ...interface{})
 }
 
-type LogLevel int
+type Level int
 
 const (
-	LogLevelDebug LogLevel = iota
-	LogLevelInfo
-	LogLevelError
+	LevelDebug Level = iota
+	LevelInfo
+	LevelError
 )
 
 const (
@@ -26,14 +26,14 @@ const (
 )
 
 type logger struct {
-	level  LogLevel
+	level  Level
 	logger Logger
 }
 
 func (l *logger) Debug(msg string, vars ...interface{}) {
 	if l.logger != nil {
 		l.logger.Debug(msg, vars...)
-	} else if l.isOk(LogLevelDebug) {
+	} else if l.isOk(LevelDebug) {
 		l.println(levelDebugMsg, msg, vars...)
 	}
 }
@@ -41,7 +41,7 @@ func (l *logger) Debug(msg string, vars ...interface{}) {
 func (l *logger) Info(msg string, vars ...interface{}) {
 	if l.logger != nil {
 		l.logger.Info(msg, vars...)
-	} else if l.isOk(LogLevelInfo) {
+	} else if l.isOk(LevelInfo) {
 		l.println(levelInfoMsg, msg, vars...)
 	}
 }
@@ -49,7 +49,7 @@ func (l *logger) Info(msg string, vars ...interface{}) {
 func (l *logger) Error(msg string, vars ...interface{}) {
 	if l.logger != nil {
 		l.logger.Error(msg, vars...)
-	} else if l.isOk(LogLevelError) {
+	} else if l.isOk(LevelError) {
 		l.println(levelErrorMsg, msg, vars...)
 	}
 }
@@ -59,10 +59,10 @@ func (l *logger) println(level, msg string, vars ...interface{}) {
 	fmt.Printf(msg, vars...)
 }
 
-func (l *logger) isOk(level LogLevel) bool {
+func (l *logger) isOk(level Level) bool {
 	return l.level <= level
 }
 
-func newLogger(level LogLevel, l Logger) Logger {
+func New(level Level, l Logger) Logger {
 	return &logger{level: level, logger: l}
 }
