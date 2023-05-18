@@ -1,13 +1,13 @@
 package lock
 
-import "time"
+import (
+	"time"
+)
 
 type Info struct {
 	MasterID string
 	Version  string
 	IP       string
-
-	CurrentHeartbeatTime time.Time
 
 	StartedAt     time.Time
 	LastHeartbeat time.Time
@@ -32,13 +32,7 @@ func (i *Info) SetLastHeartBeat(t time.Time) *Info {
 	return i
 }
 
-func (i *Info) SetCurrentHeartbeatTime(t time.Time) *Info {
-	i.CurrentHeartbeatTime = t
-	return i
-}
-
 func (i *Info) Clean() *Info {
-	i.CurrentHeartbeatTime = time.Unix(0, 0)
 	i.StartedAt = time.Unix(0, 0)
 	i.LastHeartbeat = time.Unix(0, 0)
 	return i

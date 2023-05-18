@@ -1,6 +1,8 @@
 package safe
 
-import "sync"
+import (
+	"sync"
+)
 
 type Bool struct {
 	sync.RWMutex

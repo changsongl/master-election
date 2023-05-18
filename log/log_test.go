@@ -2,10 +2,11 @@ package log
 
 import (
 	"fmt"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
 	"os"
 	"testing"
+
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 func TestLogger(t *testing.T) {

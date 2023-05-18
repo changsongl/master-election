@@ -1,8 +1,9 @@
 package master
 
 import (
-	"github.com/changsongl/master-election/log"
 	"time"
+
+	"github.com/changsongl/master-election/log"
 )
 
 const (

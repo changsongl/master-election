@@ -37,9 +37,8 @@ type master struct {
 	masterStartHook func(epoch uint64)
 	masterStopHook  func(epoch uint64)
 
-	heartbeat           time.Duration
-	heartbeatMultiplier int
-	ticker              ticker.Ticker
+	heartbeat time.Duration
+	ticker    ticker.Ticker
 
 	logger log.Logger
 
@@ -55,20 +54,8 @@ func (m *master) Start() error {
 	}
 
 	m.ticker.Loop(func() {
-		m.masterInfo.SetCurrentHeartbeatTime(time.Now())
 
 		if !m.isMaster.Value() {
-			hasMaster, err := m.hasCurrentMaster()
-			if err != nil {
-				m.logger.Errorf("master.Start m.hasCurrentMaster: %s", err)
-				return
-			}
-
-			if hasMaster {
-				m.logger.Debugf("master.Start m.hasCurrentMaster: true")
-				return
-			}
-
 			success, err := m.becomeMaster()
 			if err != nil {
 				m.logger.Errorf("master.Start m.becomeMaster: %s", err)
@@ -79,7 +66,6 @@ func (m *master) Start() error {
 				m.logger.Infof("master.Start m.becomeMaster: success")
 
 				m.isMaster.SetTrue()
-				m.masterInfo.SetStartAt(m.masterInfo.CurrentHeartbeatTime)
 				m.nextEpoch()
 				m.runMasterStartHook()
 			} else {
@@ -98,25 +84,9 @@ func (m *master) Start() error {
 			return
 		}
 
-		m.masterInfo.SetLastHeartBeat(m.masterInfo.CurrentHeartbeatTime)
-
 		m.logger.Debugf("master.Start m.lock.WriteHeartbeat: %v", m.masterInfo.LastHeartbeat)
 	})
 	return nil
-}
-
-func (m *master) hasCurrentMaster() (bool, error) {
-	curMaster, err := m.lock.CurrentMaster()
-	if err != nil {
-		m.logger.Errorf("master.hasCurrentMaster m.lock.CurrentMaster: %s", err)
-		return false, err
-	}
-
-	if curMaster == nil {
-		return false, nil
-	}
-
-	return curMaster.IsValid(m.getUUID(), m.heartbeat, 2), nil
 }
 
 func (m *master) becomeMaster() (bool, error) {
@@ -180,7 +150,15 @@ func New(l lock.MasterLock) (Master, error) {
 	ip := net.GetLocalIP()
 
 	logger := log.New(c.DefaultLoggerLogLevel, c.Logger)
-	l.SetLogger(logger)
+	if err = l.Init(&lock.MasterLockConfig{
+		Heartbeat:           c.Heartbeat,
+		HeartbeatMultiplier: c.HeartbeatMultiplier,
+		Log:                 logger,
+	}); err != nil {
+
+		logger.Errorf("master.New l.Init failed: %s", err)
+		return nil, err
+	}
 
 	return &master{
 		uuid:       uuidStr,
@@ -193,9 +171,8 @@ func New(l lock.MasterLock) (Master, error) {
 		masterStartHook: c.MasterStartHook,
 		masterStopHook:  c.MasterEndHook,
 
-		heartbeat:           c.Heartbeat,
-		heartbeatMultiplier: c.HeartbeatMultiplier,
-		ticker:              ticker.New(c.Heartbeat),
+		heartbeat: c.Heartbeat,
+		ticker:    ticker.New(c.Heartbeat),
 
 		lock: l,
 
