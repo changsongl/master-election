@@ -18,8 +18,8 @@ var (
 )
 
 const (
-	DefaultDBName             = "master-election"
-	DefaultTableName          = "master-lock"
+	DefaultDBName             = "master_election"
+	DefaultTableName          = "master_lock"
 	DefaultMaxOpenConnections = 4
 	DefaultMaxWait            = time.Second * 5
 
@@ -70,12 +70,6 @@ func (c *Config) init() {
 		c.Port = 3306
 	}
 
-	if c.BaseDSN == "" {
-		c.BaseDSN = fmt.Sprintf(
-			"%s:%s@tcp(%s:%d)/?parseTime=true&timeout=%ds&readTimeout=%ds&writeTimeout=%ds",
-			c.User, c.Password, c.Host, c.Port, c.Timeout, c.ReadTimeout, c.WriteTimeout)
-	}
-
 	if c.ConnMaxLifeTime == 0 {
 		c.ConnMaxLifeTime = DefaultMaxWait
 	}
@@ -86,6 +80,12 @@ func (c *Config) init() {
 
 	if c.TableName == "" {
 		c.TableName = DefaultTableName
+	}
+
+	if c.BaseDSN == "" {
+		c.BaseDSN = fmt.Sprintf(
+			"%s:%s@tcp(%s:%d)/?parseTime=true&timeout=%ds&readTimeout=%ds&writeTimeout=%ds",
+			c.User, c.Password, c.Host, c.Port, c.Timeout, c.ReadTimeout, c.WriteTimeout)
 	}
 
 	if c.MaxOpenConnections <= 0 {
@@ -150,16 +150,16 @@ func (m *MasterLock) Lock(info *lock.Info) (isSuccess bool, err error) {
 		return false, err
 	}
 
-	return false, err
+	return isSuccess, nil
 }
 
 func (m *MasterLock) insertMaster(info *lock.Info, now time.Time) (success bool, err error) {
 	sql := fmt.Sprintf(
 		"INSERT INTO %s (id, master_id, version, ip, started_at, last_heartbeat) VALUES (?, ?, ?, ?, ?, ?)",
-		m.getTableName(),
+		m.getTableFullName(),
 	)
 
-	err = m.db.Table(m.getTableName()).Exec(
+	err = m.db.Table(m.getTableFullName()).Exec(
 		sql, m.getRowID(), info.MasterID, info.Version, info.IP, now, now).Error
 
 	if err != nil {
@@ -175,7 +175,7 @@ func (m *MasterLock) insertMaster(info *lock.Info, now time.Time) (success bool,
 }
 
 func (m *MasterLock) updateMaster(curMaster, info *lock.Info, now time.Time) (success bool, err error) {
-	result := m.db.Table(m.getTableName()).
+	result := m.db.Table(m.getTableFullName()).
 		Where("id = ? AND master_id = ? AND version = ? AND started_at = ? AND last_heartbeat = ? AND ip = ?",
 			m.getRowID(), curMaster.MasterID, curMaster.Version,
 			curMaster.StartedAt, curMaster.LastHeartbeat, curMaster.IP).
@@ -196,7 +196,7 @@ func (m *MasterLock) updateMaster(curMaster, info *lock.Info, now time.Time) (su
 }
 
 func (m *MasterLock) UnLock(info *lock.Info) (isSuccess bool, err error) {
-	result := m.db.Table(m.getTableName()).
+	result := m.db.Table(m.getTableFullName()).
 		Where("id = ? AND master_id = ?", m.getRowID(), info.MasterID).Delete(&lock.Info{})
 
 	if result.Error != nil {
@@ -210,7 +210,7 @@ func (m *MasterLock) UnLock(info *lock.Info) (isSuccess bool, err error) {
 func (m *MasterLock) WriteHeartbeat(info *lock.Info) error {
 	now := time.Now()
 
-	result := m.db.Table(m.getTableName()).
+	result := m.db.Table(m.getTableFullName()).
 		Where("id = ? AND master_id = ?", m.getRowID(), info.MasterID).
 		Update("last_heartbeat", now)
 
@@ -229,7 +229,7 @@ func (m *MasterLock) WriteHeartbeat(info *lock.Info) error {
 
 func (m *MasterLock) CurrentMaster() (*lock.Info, error) {
 	info := &lock.Info{}
-	err := m.db.Table(m.getTableName()).Where("id = ?", m.getRowID()).First(info).Error
+	err := m.db.Table(m.getTableFullName()).Where("id = ?", m.getRowID()).First(info).Error
 	if err == gorm.ErrRecordNotFound {
 		return nil, lock.ErrorCurrentlyNoMaster
 	} else if err != nil {
@@ -260,6 +260,10 @@ func (m *MasterLock) Init(c *lock.MasterLockConfig) error {
 
 func (m *MasterLock) getRowID() uint {
 	return m.c.RowID
+}
+
+func (m *MasterLock) getTableFullName() string {
+	return fmt.Sprintf("%s.%s", m.getDBName(), m.getTableName())
 }
 
 func (m *MasterLock) getTableName() string {
@@ -327,7 +331,7 @@ func (m *MasterLock) createTable(db *gorm.DB) error {
 		`ip VARCHAR(16),`+
 		`started_at TIMESTAMP NULL,`+
 		`last_heartbeat TIMESTAMP NULL`+
-		`);`, m.getTableName())
+		`);`, m.getTableFullName())
 
 	if err := db.Exec(query).Error; err != nil {
 		m.logger.Errorf("MasterLock.createTable db.Exec failed: %s", err)

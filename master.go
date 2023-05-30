@@ -125,7 +125,9 @@ func (m *master) Stop() error {
 		return err
 	}
 
-	m.logger.Infof("master.Stop end: is_master: %t", success)
+	m.logger.Infof("master.Stop end: success: %t", success)
+
+	m.cleanMasterState()
 
 	return nil
 }
@@ -138,10 +140,14 @@ func (m *master) ID() string {
 	return m.getUUID()
 }
 
-func New(l lock.MasterLock) (Master, error) {
+func New(l lock.MasterLock, opts ...Option) (Master, error) {
 	c := newDefaultConfig()
 
-	id, err := uuid.NewUUID()
+	for _, opt := range opts {
+		opt.apply(c)
+	}
+
+	id, err := uuid.NewRandom()
 	if err != nil {
 		return nil, err
 	}
