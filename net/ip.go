@@ -1,6 +1,8 @@
 package net
 
-import "net"
+import (
+	"net"
+)
 
 // GetLocalIP returns the non loopback local IP of the host
 func GetLocalIP() string {

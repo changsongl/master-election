@@ -1,6 +1,10 @@
 package master
 
-import "time"
+import (
+	"time"
+
+	"github.com/changsongl/master-election/log"
+)
 
 const (
 	defaultHeartBeat = time.Second * 6
@@ -18,14 +22,16 @@ type config struct {
 	MasterStartHook func(epoch uint64)
 	MasterEndHook   func(epoch uint64)
 
-	Logger Logger
+	DefaultLoggerLogLevel log.Level
+	Logger                log.Logger
 }
 
 func newDefaultConfig() *config {
 	return &config{
-		Heartbeat:           defaultHeartBeat,
-		Version:             defaultVersion,
-		HeartbeatMultiplier: defaultHeartBeatMultiplier,
+		Heartbeat:             defaultHeartBeat,
+		Version:               defaultVersion,
+		HeartbeatMultiplier:   defaultHeartBeatMultiplier,
+		DefaultLoggerLogLevel: log.LevelInfo,
 	}
 }
 
@@ -69,8 +75,14 @@ func OptionMasterEndHook(f func(epoch uint64)) Option {
 	})
 }
 
-func OptionLogger(l Logger) Option {
+func OptionLogger(l log.Logger) Option {
 	return optFunc(func(c *config) {
 		c.Logger = l
+	})
+}
+
+func OptionDefaultLoggerLogLevel(l log.Level) Option {
+	return optFunc(func(c *config) {
+		c.DefaultLoggerLogLevel = l
 	})
 }

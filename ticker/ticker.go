@@ -11,33 +11,39 @@ type Ticker interface {
 }
 
 type ticker struct {
-	once      sync.Once
-	closeChan chan struct{}
-	ticker    *time.Ticker
-	heartbeat time.Duration
+	once            sync.Once
+	closeChan       chan struct{}
+	closeFinishChan chan struct{}
+	ticker          *time.Ticker
+	heartbeat       time.Duration
 }
 
 func (t *ticker) Loop(f func()) {
+	f()
 
-	for range t.ticker.C {
-		f()
+	for {
+		select {
+		case <-t.ticker.C:
+		case <-t.closeChan:
+			close(t.closeFinishChan)
+			return
+		}
 	}
-
-	t.once.Do(func() {
-		close(t.closeChan)
-	})
 }
 
 func (t *ticker) Stop() {
 	t.ticker.Stop()
-	<-t.closeChan
+
+	close(t.closeChan)
+	<-t.closeFinishChan
 }
 
 func New(d time.Duration) Ticker {
 	return &ticker{
-		once:      sync.Once{},
-		closeChan: make(chan struct{}),
-		heartbeat: d,
-		ticker:    time.NewTicker(d),
+		once:            sync.Once{},
+		closeChan:       make(chan struct{}),
+		closeFinishChan: make(chan struct{}),
+		heartbeat:       d,
+		ticker:          time.NewTicker(d),
 	}
 }
